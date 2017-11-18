@@ -16,13 +16,19 @@
 using namespace std;
 
 const int INT_BOARD_SIZE = 12;
+int intPlayerHits = 0;
+int intComputerHits = 0;
 
 int randomInt(int, int);
 void initializeBoard(char [][INT_BOARD_SIZE]);
 void drawBoard(char [][INT_BOARD_SIZE], char [][INT_BOARD_SIZE]);
 void spawnShips(char [][INT_BOARD_SIZE]);
 void playerTurn(char [][INT_BOARD_SIZE], char [][INT_BOARD_SIZE]);
+void computerTurn(char [][INT_BOARD_SIZE]);
+bool *searchForHits(char [][INT_BOARD_SIZE], int *, int *);
+
 bool *validateMove(string *, char[][INT_BOARD_SIZE]);
+bool *validateMove(int *, int *, char[][INT_BOARD_SIZE]);
 int convertMoveLetter(char);
 int convertMoveNumber(char);
 
@@ -43,12 +49,16 @@ int main()
     
     drawBoard(chrBoardPlayer, chrBoardComputerVisible);
 
-    while (!booIsGameOver)
+    while (intPlayerHits < 15 && intComputerHits < 15)
     {
         playerTurn(chrBoardComputerVisible, chrBoardComputerNonVisible);
+        drawBoard(chrBoardPlayer, chrBoardComputerVisible);
         
+        computerTurn(chrBoardPlayer);
         drawBoard(chrBoardPlayer, chrBoardComputerVisible);
     }
+    
+    cout << endl << endl << "GAME OVER" << endl;
     
     return 0;
 }
@@ -146,6 +156,11 @@ void initializeBoard(char board[][INT_BOARD_SIZE])
 
 void drawBoard(char boardPlayer[][INT_BOARD_SIZE], char boardComputer[][INT_BOARD_SIZE])
 {
+    
+    cout << endl << endl << endl << endl << endl << endl;
+    cout << endl << endl << endl << endl << endl << endl;
+    cout << endl << endl << endl << endl << endl << endl;
+    cout << endl << endl << endl << endl << endl << endl;
     
     cout << setw(16) << "COMPUTER" << endl;
     for (int i = 0 ; i < INT_BOARD_SIZE ; i++)
@@ -274,7 +289,149 @@ void playerTurn(char computerVisible[][INT_BOARD_SIZE], char computerNonVisible[
     {
         computerVisible[*intPointOne][*intPointTwo] = 'X';
         computerNonVisible[*intPointOne][*intPointTwo] = 'X';
+        intPlayerHits++;
     }
+}
+
+void computerTurn(char playerBoard[][INT_BOARD_SIZE])
+{
+    bool *isValid = nullptr;
+    isValid = new bool;
+    
+    
+    int *intPointOne = nullptr;
+    intPointOne = new int;
+    int *intPointTwo = nullptr;
+    intPointTwo = new int;
+    
+//    int &refPointOne = *intPointOne;
+//    int &refPointTwo = *intPointTwo;
+    
+    int pointOne;
+    int pointTwo;
+    
+    isValid = searchForHits(playerBoard, &pointOne, &pointTwo);
+    
+    while (*isValid != true)
+    {
+        *intPointOne = randomInt(2, INT_BOARD_SIZE - 1);
+        *intPointTwo = randomInt(2, INT_BOARD_SIZE - 1);
+        
+        *isValid = validateMove(intPointOne, intPointTwo, playerBoard);
+    }
+    
+    if (playerBoard[*intPointOne][*intPointTwo] == '*')
+    {
+        playerBoard[*intPointOne][*intPointTwo] = 'O';
+    }
+    else if (playerBoard[*intPointOne][*intPointTwo] == 'S')
+    {
+        playerBoard[*intPointOne][*intPointTwo] = 'X';
+        intComputerHits++;
+    }
+}
+
+bool *searchForHits(char playerBoard[][INT_BOARD_SIZE], int *pointOne, int *pointTwo)
+{
+    bool *booIsValid = nullptr;
+    booIsValid = new bool;
+    *booIsValid = false;
+    
+    for (int i = 2 ; i < (INT_BOARD_SIZE - 1) ; i++)
+    {
+        for (int j = 2 ; j < (INT_BOARD_SIZE - 1) ; j++)
+        {
+            if (playerBoard[i][j] == 'X')
+            {
+                if (playerBoard[i - 1][j] == 'X')
+                {
+                    if (playerBoard[i - 2][j] == 'X')
+                    {
+                        *booIsValid = false;
+                    }
+                    else if (playerBoard[i - 2][j] == '*')
+                    {
+                        *pointOne = i - 2;
+                        *pointTwo = j;
+                        *booIsValid = true;
+                        break;
+                    }
+                }
+                else if (playerBoard[i - 1][j] == '*')
+                {
+                    *pointOne = i - 1;
+                    *pointTwo = j;
+                    *booIsValid = true;
+                    break;
+                }
+                
+                if (playerBoard[i][j - 1] == 'X')
+                {
+                    if (playerBoard[i][j - 2] == 'X')
+                    {
+                    }
+                    else if (playerBoard[i][j - 2] == '*')
+                    {
+                        *pointOne = i;
+                        *pointTwo = j - 2;
+                        *booIsValid = true;
+                        break;
+                    }
+                }
+                else if (playerBoard[i][j - 1] == '*')
+                {
+                    *pointOne = i;
+                    *pointTwo = j - 1;
+                    *booIsValid = true;
+                    break;
+                }
+                
+                if (playerBoard[i][j + 1] == 'X')
+                {
+                    if (playerBoard[i][j + 2] == 'X')
+                    {
+                    }
+                    else if (playerBoard[i][j + 2] == '*')
+                    {
+                        *pointOne = i;
+                        *pointTwo = j + 2;
+                        *booIsValid = true;
+                        break;
+                    }
+                }
+                else if (playerBoard[i][j + 1] == '*')
+                {
+                    *pointOne = i;
+                    *pointTwo = j + 1;
+                    *booIsValid = true;
+                    break;
+                }
+                
+                if (playerBoard[i + 1][j] == 'X')
+                {
+                    if (playerBoard[i + 2][j] == 'X')
+                    {
+                    }
+                    else if (playerBoard[i + 2][j] == '*')
+                    {
+                        *pointOne = i + 2;
+                        *pointTwo = j;
+                        *booIsValid = true;
+                        break;
+                    }
+                }
+                else if (playerBoard[i + 1][j] == '*')
+                {
+                    *pointOne = i + 1;
+                    *pointTwo = j;
+                    *booIsValid = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    return booIsValid;
 }
 
 bool *validateMove(string *move, char computerVisible[][INT_BOARD_SIZE])
@@ -314,6 +471,20 @@ bool *validateMove(string *move, char computerVisible[][INT_BOARD_SIZE])
     }
     
     return isValid;
+}
+
+bool *validateMove(int *pointOne, int *pointTwo, char playerBoard[][INT_BOARD_SIZE])
+{
+    bool *booIsValid = nullptr;
+    booIsValid = new bool;
+    *booIsValid = false;
+    
+    if (playerBoard[*pointOne][*pointTwo] == '*' || playerBoard[*pointOne][*pointTwo] == 'S')
+    {
+        *booIsValid = true;
+    }
+    
+    return booIsValid;
 }
 
 int convertMoveLetter(char letter)
