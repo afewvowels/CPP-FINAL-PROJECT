@@ -38,8 +38,6 @@ int main()
     char chrBoardComputerVisible[INT_BOARD_SIZE][INT_BOARD_SIZE];
     char chrBoardComputerNonVisible[INT_BOARD_SIZE][INT_BOARD_SIZE];
     
-    bool booIsGameOver = false;
-    
     initializeBoard(chrBoardPlayer);
     initializeBoard(chrBoardComputerVisible);
     initializeBoard(chrBoardComputerNonVisible);
@@ -54,11 +52,23 @@ int main()
         playerTurn(chrBoardComputerVisible, chrBoardComputerNonVisible);
         drawBoard(chrBoardPlayer, chrBoardComputerVisible);
         
-        computerTurn(chrBoardPlayer);
-        drawBoard(chrBoardPlayer, chrBoardComputerVisible);
+        if (intPlayerHits != 15)
+        {
+            computerTurn(chrBoardPlayer);
+            drawBoard(chrBoardPlayer, chrBoardComputerVisible);
+        }
     }
     
-    cout << endl << endl << "GAME OVER" << endl;
+    if (intPlayerHits == 15)
+    {
+        cout << endl << "Player wins!";
+    }
+    else if (intComputerHits == 15)
+    {
+        cout << endl << "Computer wins!";
+    }
+    
+    cout << endl << endl << "GAME OVER" << endl << endl;
     
     return 0;
 }
@@ -304,20 +314,30 @@ void computerTurn(char playerBoard[][INT_BOARD_SIZE])
     int *intPointTwo = nullptr;
     intPointTwo = new int;
     
-//    int &refPointOne = *intPointOne;
-//    int &refPointTwo = *intPointTwo;
-    
     int pointOne;
     int pointTwo;
     
     isValid = searchForHits(playerBoard, &pointOne, &pointTwo);
+    
+    if (*isValid == true && validateMove(&pointOne, &pointTwo, playerBoard))
+    {
+        *intPointOne = pointOne;
+        *intPointTwo = pointTwo;
+    }
+    else if (*isValid == true)
+    {
+        while (*validateMove(&pointOne, &pointTwo, playerBoard) != true)
+        {
+            *isValid = searchForHits(playerBoard, &pointOne, &pointTwo);
+        }
+    }
     
     while (*isValid != true)
     {
         *intPointOne = randomInt(2, INT_BOARD_SIZE - 1);
         *intPointTwo = randomInt(2, INT_BOARD_SIZE - 1);
         
-        *isValid = validateMove(intPointOne, intPointTwo, playerBoard);
+        *isValid = *validateMove(intPointOne, intPointTwo, playerBoard);
     }
     
     if (playerBoard[*intPointOne][*intPointTwo] == '*')
@@ -348,16 +368,19 @@ bool *searchForHits(char playerBoard[][INT_BOARD_SIZE], int *pointOne, int *poin
                     if (playerBoard[i - 2][j] == 'X')
                     {
                         *booIsValid = false;
+                        continue;
                     }
-                    else if (playerBoard[i - 2][j] == '*')
+                    else if (playerBoard[i - 2][j] == '*' || playerBoard[i - 2][j] == 'S')
                     {
                         *pointOne = i - 2;
                         *pointTwo = j;
                         *booIsValid = true;
                         break;
                     }
+                    
+                    *booIsValid = false;
                 }
-                else if (playerBoard[i - 1][j] == '*')
+                else if (playerBoard[i - 1][j] == '*' || playerBoard[i - 1][j] == 'S')
                 {
                     *pointOne = i - 1;
                     *pointTwo = j;
@@ -369,16 +392,20 @@ bool *searchForHits(char playerBoard[][INT_BOARD_SIZE], int *pointOne, int *poin
                 {
                     if (playerBoard[i][j - 2] == 'X')
                     {
+                        *booIsValid = false;
+                        continue;
                     }
-                    else if (playerBoard[i][j - 2] == '*')
+                    else if (playerBoard[i][j - 2] == '*' || playerBoard[i][j - 2] == 'S')
                     {
                         *pointOne = i;
                         *pointTwo = j - 2;
                         *booIsValid = true;
                         break;
                     }
+                    
+                    *booIsValid = false;
                 }
-                else if (playerBoard[i][j - 1] == '*')
+                else if (playerBoard[i][j - 1] == '*' || playerBoard[i][j - 1] == 'S')
                 {
                     *pointOne = i;
                     *pointTwo = j - 1;
@@ -390,16 +417,20 @@ bool *searchForHits(char playerBoard[][INT_BOARD_SIZE], int *pointOne, int *poin
                 {
                     if (playerBoard[i][j + 2] == 'X')
                     {
+                        *booIsValid = false;
+                        continue;
                     }
-                    else if (playerBoard[i][j + 2] == '*')
+                    else if (playerBoard[i][j + 2] == '*' || playerBoard[i][j + 2] == 'S')
                     {
                         *pointOne = i;
                         *pointTwo = j + 2;
                         *booIsValid = true;
                         break;
                     }
+                    
+                    *booIsValid = false;
                 }
-                else if (playerBoard[i][j + 1] == '*')
+                else if (playerBoard[i][j + 1] == '*' || playerBoard[i][j + 1] == 'S')
                 {
                     *pointOne = i;
                     *pointTwo = j + 1;
@@ -411,16 +442,20 @@ bool *searchForHits(char playerBoard[][INT_BOARD_SIZE], int *pointOne, int *poin
                 {
                     if (playerBoard[i + 2][j] == 'X')
                     {
+                        *booIsValid = false;
+                        continue;
                     }
-                    else if (playerBoard[i + 2][j] == '*')
+                    else if (playerBoard[i + 2][j] == '*' || playerBoard[i + 2][j] == 'S')
                     {
                         *pointOne = i + 2;
                         *pointTwo = j;
                         *booIsValid = true;
                         break;
                     }
+                    
+                    *booIsValid = false;
                 }
-                else if (playerBoard[i + 1][j] == '*')
+                else if (playerBoard[i + 1][j] == '*' || playerBoard[i + 1][j] == 'S')
                 {
                     *pointOne = i + 1;
                     *pointTwo = j;
@@ -446,6 +481,8 @@ bool *validateMove(string *move, char computerVisible[][INT_BOARD_SIZE])
     
     if (move->size() == 2 && isalpha(move->at(0)) == true && isdigit(move->at(1)) == true)
     {
+        move->at(0) = toupper(move->at(0));
+        
         if (move->at(0) >= 'A' && move->at(0) <= 'I' && move->at(1) >= '1' && move->at(1) <= '9')
         {
             *intPointOne = convertMoveLetter(move->at(0));
@@ -482,6 +519,10 @@ bool *validateMove(int *pointOne, int *pointTwo, char playerBoard[][INT_BOARD_SI
     if (playerBoard[*pointOne][*pointTwo] == '*' || playerBoard[*pointOne][*pointTwo] == 'S')
     {
         *booIsValid = true;
+    }
+    else if (playerBoard[*pointOne][*pointTwo] == 'O' || playerBoard[*pointOne][*pointTwo] == 'X')
+    {
+        *booIsValid = false;
     }
     
     return booIsValid;
